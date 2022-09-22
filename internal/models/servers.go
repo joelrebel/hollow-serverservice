@@ -24,74 +24,83 @@ import (
 
 // Server is an object representing the database table.
 type Server struct {
-	ID           string      `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Name         null.String `boil:"name" json:"name,omitempty" toml:"name" yaml:"name,omitempty"`
-	FacilityCode null.String `boil:"facility_code" json:"facility_code,omitempty" toml:"facility_code" yaml:"facility_code,omitempty"`
-	CreatedAt    null.Time   `boil:"created_at" json:"created_at,omitempty" toml:"created_at" yaml:"created_at,omitempty"`
-	UpdatedAt    null.Time   `boil:"updated_at" json:"updated_at,omitempty" toml:"updated_at" yaml:"updated_at,omitempty"`
-	DeletedAt    null.Time   `boil:"deleted_at" json:"deleted_at,omitempty" toml:"deleted_at" yaml:"deleted_at,omitempty"`
+	ID            string      `boil:"id" json:"id" toml:"id" yaml:"id"`
+	Name          null.String `boil:"name" json:"name,omitempty" toml:"name" yaml:"name,omitempty"`
+	FacilityCode  null.String `boil:"facility_code" json:"facility_code,omitempty" toml:"facility_code" yaml:"facility_code,omitempty"`
+	CreatedAt     null.Time   `boil:"created_at" json:"created_at,omitempty" toml:"created_at" yaml:"created_at,omitempty"`
+	UpdatedAt     null.Time   `boil:"updated_at" json:"updated_at,omitempty" toml:"updated_at" yaml:"updated_at,omitempty"`
+	DeletedAt     null.Time   `boil:"deleted_at" json:"deleted_at,omitempty" toml:"deleted_at" yaml:"deleted_at,omitempty"`
+	FirmwareSetID null.String `boil:"firmware_set_id" json:"firmware_set_id,omitempty" toml:"firmware_set_id" yaml:"firmware_set_id,omitempty"`
 
 	R *serverR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L serverL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var ServerColumns = struct {
-	ID           string
-	Name         string
-	FacilityCode string
-	CreatedAt    string
-	UpdatedAt    string
-	DeletedAt    string
+	ID            string
+	Name          string
+	FacilityCode  string
+	CreatedAt     string
+	UpdatedAt     string
+	DeletedAt     string
+	FirmwareSetID string
 }{
-	ID:           "id",
-	Name:         "name",
-	FacilityCode: "facility_code",
-	CreatedAt:    "created_at",
-	UpdatedAt:    "updated_at",
-	DeletedAt:    "deleted_at",
+	ID:            "id",
+	Name:          "name",
+	FacilityCode:  "facility_code",
+	CreatedAt:     "created_at",
+	UpdatedAt:     "updated_at",
+	DeletedAt:     "deleted_at",
+	FirmwareSetID: "firmware_set_id",
 }
 
 var ServerTableColumns = struct {
-	ID           string
-	Name         string
-	FacilityCode string
-	CreatedAt    string
-	UpdatedAt    string
-	DeletedAt    string
+	ID            string
+	Name          string
+	FacilityCode  string
+	CreatedAt     string
+	UpdatedAt     string
+	DeletedAt     string
+	FirmwareSetID string
 }{
-	ID:           "servers.id",
-	Name:         "servers.name",
-	FacilityCode: "servers.facility_code",
-	CreatedAt:    "servers.created_at",
-	UpdatedAt:    "servers.updated_at",
-	DeletedAt:    "servers.deleted_at",
+	ID:            "servers.id",
+	Name:          "servers.name",
+	FacilityCode:  "servers.facility_code",
+	CreatedAt:     "servers.created_at",
+	UpdatedAt:     "servers.updated_at",
+	DeletedAt:     "servers.deleted_at",
+	FirmwareSetID: "servers.firmware_set_id",
 }
 
 // Generated where
 
 var ServerWhere = struct {
-	ID           whereHelperstring
-	Name         whereHelpernull_String
-	FacilityCode whereHelpernull_String
-	CreatedAt    whereHelpernull_Time
-	UpdatedAt    whereHelpernull_Time
-	DeletedAt    whereHelpernull_Time
+	ID            whereHelperstring
+	Name          whereHelpernull_String
+	FacilityCode  whereHelpernull_String
+	CreatedAt     whereHelpernull_Time
+	UpdatedAt     whereHelpernull_Time
+	DeletedAt     whereHelpernull_Time
+	FirmwareSetID whereHelpernull_String
 }{
-	ID:           whereHelperstring{field: "\"servers\".\"id\""},
-	Name:         whereHelpernull_String{field: "\"servers\".\"name\""},
-	FacilityCode: whereHelpernull_String{field: "\"servers\".\"facility_code\""},
-	CreatedAt:    whereHelpernull_Time{field: "\"servers\".\"created_at\""},
-	UpdatedAt:    whereHelpernull_Time{field: "\"servers\".\"updated_at\""},
-	DeletedAt:    whereHelpernull_Time{field: "\"servers\".\"deleted_at\""},
+	ID:            whereHelperstring{field: "\"servers\".\"id\""},
+	Name:          whereHelpernull_String{field: "\"servers\".\"name\""},
+	FacilityCode:  whereHelpernull_String{field: "\"servers\".\"facility_code\""},
+	CreatedAt:     whereHelpernull_Time{field: "\"servers\".\"created_at\""},
+	UpdatedAt:     whereHelpernull_Time{field: "\"servers\".\"updated_at\""},
+	DeletedAt:     whereHelpernull_Time{field: "\"servers\".\"deleted_at\""},
+	FirmwareSetID: whereHelpernull_String{field: "\"servers\".\"firmware_set_id\""},
 }
 
 // ServerRels is where relationship names are stored.
 var ServerRels = struct {
+	FirmwareSet         string
 	Attributes          string
 	ServerComponents    string
 	ServerCredentials   string
 	VersionedAttributes string
 }{
+	FirmwareSet:         "FirmwareSet",
 	Attributes:          "Attributes",
 	ServerComponents:    "ServerComponents",
 	ServerCredentials:   "ServerCredentials",
@@ -100,6 +109,7 @@ var ServerRels = struct {
 
 // serverR is where relationships are stored.
 type serverR struct {
+	FirmwareSet         *ComponentFirmwareSet   `boil:"FirmwareSet" json:"FirmwareSet" toml:"FirmwareSet" yaml:"FirmwareSet"`
 	Attributes          AttributeSlice          `boil:"Attributes" json:"Attributes" toml:"Attributes" yaml:"Attributes"`
 	ServerComponents    ServerComponentSlice    `boil:"ServerComponents" json:"ServerComponents" toml:"ServerComponents" yaml:"ServerComponents"`
 	ServerCredentials   ServerCredentialSlice   `boil:"ServerCredentials" json:"ServerCredentials" toml:"ServerCredentials" yaml:"ServerCredentials"`
@@ -109,6 +119,13 @@ type serverR struct {
 // NewStruct creates a new relationship struct
 func (*serverR) NewStruct() *serverR {
 	return &serverR{}
+}
+
+func (r *serverR) GetFirmwareSet() *ComponentFirmwareSet {
+	if r == nil {
+		return nil
+	}
+	return r.FirmwareSet
 }
 
 func (r *serverR) GetAttributes() AttributeSlice {
@@ -143,9 +160,9 @@ func (r *serverR) GetVersionedAttributes() VersionedAttributeSlice {
 type serverL struct{}
 
 var (
-	serverAllColumns            = []string{"id", "name", "facility_code", "created_at", "updated_at", "deleted_at"}
+	serverAllColumns            = []string{"id", "name", "facility_code", "created_at", "updated_at", "deleted_at", "firmware_set_id"}
 	serverColumnsWithoutDefault = []string{}
-	serverColumnsWithDefault    = []string{"id", "name", "facility_code", "created_at", "updated_at", "deleted_at"}
+	serverColumnsWithDefault    = []string{"id", "name", "facility_code", "created_at", "updated_at", "deleted_at", "firmware_set_id"}
 	serverPrimaryKeyColumns     = []string{"id"}
 	serverGeneratedColumns      = []string{}
 )
@@ -428,6 +445,17 @@ func (q serverQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (boo
 	return count > 0, nil
 }
 
+// FirmwareSet pointed to by the foreign key.
+func (o *Server) FirmwareSet(mods ...qm.QueryMod) componentFirmwareSetQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("\"id\" = ?", o.FirmwareSetID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	return ComponentFirmwareSets(queryMods...)
+}
+
 // Attributes retrieves all the attribute's Attributes with an executor.
 func (o *Server) Attributes(mods ...qm.QueryMod) attributeQuery {
 	var queryMods []qm.QueryMod
@@ -482,6 +510,114 @@ func (o *Server) VersionedAttributes(mods ...qm.QueryMod) versionedAttributeQuer
 	)
 
 	return VersionedAttributes(queryMods...)
+}
+
+// LoadFirmwareSet allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (serverL) LoadFirmwareSet(ctx context.Context, e boil.ContextExecutor, singular bool, maybeServer interface{}, mods queries.Applicator) error {
+	var slice []*Server
+	var object *Server
+
+	if singular {
+		object = maybeServer.(*Server)
+	} else {
+		slice = *maybeServer.(*[]*Server)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &serverR{}
+		}
+		if !queries.IsNil(object.FirmwareSetID) {
+			args = append(args, object.FirmwareSetID)
+		}
+
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &serverR{}
+			}
+
+			for _, a := range args {
+				if queries.Equal(a, obj.FirmwareSetID) {
+					continue Outer
+				}
+			}
+
+			if !queries.IsNil(obj.FirmwareSetID) {
+				args = append(args, obj.FirmwareSetID)
+			}
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(
+		qm.From(`component_firmware_set`),
+		qm.WhereIn(`component_firmware_set.id in ?`, args...),
+	)
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load ComponentFirmwareSet")
+	}
+
+	var resultSlice []*ComponentFirmwareSet
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice ComponentFirmwareSet")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for component_firmware_set")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for component_firmware_set")
+	}
+
+	if len(serverAfterSelectHooks) != 0 {
+		for _, obj := range resultSlice {
+			if err := obj.doAfterSelectHooks(ctx, e); err != nil {
+				return err
+			}
+		}
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.FirmwareSet = foreign
+		if foreign.R == nil {
+			foreign.R = &componentFirmwareSetR{}
+		}
+		foreign.R.FirmwareSetServers = append(foreign.R.FirmwareSetServers, object)
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if queries.Equal(local.FirmwareSetID, foreign.ID) {
+				local.R.FirmwareSet = foreign
+				if foreign.R == nil {
+					foreign.R = &componentFirmwareSetR{}
+				}
+				foreign.R.FirmwareSetServers = append(foreign.R.FirmwareSetServers, local)
+				break
+			}
+		}
+	}
+
+	return nil
 }
 
 // LoadAttributes allows an eager lookup of values, cached into the
@@ -873,6 +1009,86 @@ func (serverL) LoadVersionedAttributes(ctx context.Context, e boil.ContextExecut
 		}
 	}
 
+	return nil
+}
+
+// SetFirmwareSet of the server to the related item.
+// Sets o.R.FirmwareSet to related.
+// Adds o to related.R.FirmwareSetServers.
+func (o *Server) SetFirmwareSet(ctx context.Context, exec boil.ContextExecutor, insert bool, related *ComponentFirmwareSet) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"servers\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"firmware_set_id"}),
+		strmangle.WhereClause("\"", "\"", 2, serverPrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	queries.Assign(&o.FirmwareSetID, related.ID)
+	if o.R == nil {
+		o.R = &serverR{
+			FirmwareSet: related,
+		}
+	} else {
+		o.R.FirmwareSet = related
+	}
+
+	if related.R == nil {
+		related.R = &componentFirmwareSetR{
+			FirmwareSetServers: ServerSlice{o},
+		}
+	} else {
+		related.R.FirmwareSetServers = append(related.R.FirmwareSetServers, o)
+	}
+
+	return nil
+}
+
+// RemoveFirmwareSet relationship.
+// Sets o.R.FirmwareSet to nil.
+// Removes o from all passed in related items' relationships struct.
+func (o *Server) RemoveFirmwareSet(ctx context.Context, exec boil.ContextExecutor, related *ComponentFirmwareSet) error {
+	var err error
+
+	queries.SetScanner(&o.FirmwareSetID, nil)
+	if _, err = o.Update(ctx, exec, boil.Whitelist("firmware_set_id")); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	if o.R != nil {
+		o.R.FirmwareSet = nil
+	}
+	if related == nil || related.R == nil {
+		return nil
+	}
+
+	for i, ri := range related.R.FirmwareSetServers {
+		if queries.Equal(o.FirmwareSetID, ri.FirmwareSetID) {
+			continue
+		}
+
+		ln := len(related.R.FirmwareSetServers)
+		if ln > 1 && i < ln-1 {
+			related.R.FirmwareSetServers[i] = related.R.FirmwareSetServers[ln-1]
+		}
+		related.R.FirmwareSetServers = related.R.FirmwareSetServers[:ln-1]
+		break
+	}
 	return nil
 }
 

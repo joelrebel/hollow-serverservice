@@ -13,6 +13,7 @@ import (
 // ServerListParams allows you to filter the results
 type ServerListParams struct {
 	FacilityCode                 string `form:"facility-code"`
+	FirmwareSetUUID              string `form:"firmware-set-uuid"`
 	ComponentListParams          []ServerComponentListParams
 	AttributeListParams          []AttributeListParams
 	IncludeDeleted               bool `form:"include-deleted"`
@@ -27,6 +28,10 @@ func (p *ServerListParams) setQuery(q url.Values) {
 
 	if p.FacilityCode != "" {
 		q.Set("facility-code", p.FacilityCode)
+	}
+
+	if p.FirmwareSetUUID != "" {
+		q.Set("firmware-set-uuid", p.FirmwareSetUUID)
 	}
 
 	if p.IncludeDeleted {

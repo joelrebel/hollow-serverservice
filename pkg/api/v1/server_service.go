@@ -10,13 +10,14 @@ import (
 )
 
 const (
-	serversEndpoint                   = "servers"
-	serverAttributesEndpoint          = "attributes"
-	serverComponentsEndpoint          = "components"
-	serverVersionedAttributesEndpoint = "versioned-attributes"
-	serverComponentFirmwaresEndpoint  = "server-component-firmwares"
-	serverCredentialsEndpoint         = "credentials"
-	serverCredentialTypeEndpoint      = "server-credential-types"
+	serversEndpoint                     = "servers"
+	serverAttributesEndpoint            = "attributes"
+	serverComponentsEndpoint            = "components"
+	serverVersionedAttributesEndpoint   = "versioned-attributes"
+	serverComponentFirmwaresEndpoint    = "server-component-firmwares"
+	serverComponentFirmwareSetsEndpoint = "server-component-firmware-sets"
+	serverCredentialsEndpoint           = "credentials"
+	serverCredentialTypeEndpoint        = "server-credential-types"
 )
 
 // ClientInterface provides an interface for the expected calls to interact with a server service api
@@ -43,6 +44,7 @@ type ClientInterface interface {
 	GetServerComponentFirmware(context.Context, uuid.UUID) (*ComponentFirmwareVersion, *ServerResponse, error)
 	ListServerComponentFirmware(context.Context, *ComponentFirmwareVersionListParams) ([]ComponentFirmwareVersion, *ServerResponse, error)
 	UpdateServerComponentFirmware(context.Context, uuid.UUID, ComponentFirmwareVersion) (*ServerResponse, error)
+	CreateServerComponentFirmwareSet(context.Context, ComponentFirmwareSetPayload) (*uuid.UUID, *ServerResponse, error)
 	GetCredential(context.Context, uuid.UUID, string) (*ServerCredential, *ServerResponse, error)
 	SetCredential(context.Context, uuid.UUID, string, string) (*ServerResponse, error)
 	DeleteCredential(context.Context, uuid.UUID, string) (*ServerResponse, error)
@@ -264,6 +266,21 @@ func (c *Client) ListServerComponentFirmware(ctx context.Context, params *Compon
 func (c *Client) UpdateServerComponentFirmware(ctx context.Context, fwUUID uuid.UUID, firmware ComponentFirmwareVersion) (*ServerResponse, error) {
 	path := fmt.Sprintf("%s/%s", serverComponentFirmwaresEndpoint, fwUUID)
 	return c.put(ctx, path, firmware)
+}
+
+// CreateServerComponentFirmwareSet will attempt to create a firmware set in Hollow and return the firmware UUID
+func (c *Client) CreateServerComponentFirmwareSet(ctx context.Context, set ComponentFirmwareSetPayload) (*uuid.UUID, *ServerResponse, error) {
+	resp, err := c.post(ctx, serverComponentFirmwareSetsEndpoint, set)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	u, err := uuid.Parse(resp.Slug)
+	if err != nil {
+		return nil, resp, nil
+	}
+
+	return &u, resp, nil
 }
 
 // GetCredential will return the secret for the secret type for the given server UUID

@@ -1605,6 +1605,166 @@ func testServerToManyRemoveOpVersionedAttributes(t *testing.T) {
 	}
 }
 
+func testServerToOneComponentFirmwareSetUsingFirmwareSet(t *testing.T) {
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var local Server
+	var foreign ComponentFirmwareSet
+
+	seed := randomize.NewSeed()
+	if err := randomize.Struct(seed, &local, serverDBTypes, true, serverColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Server struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &foreign, componentFirmwareSetDBTypes, false, componentFirmwareSetColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize ComponentFirmwareSet struct: %s", err)
+	}
+
+	if err := foreign.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	queries.Assign(&local.FirmwareSetID, foreign.ID)
+	if err := local.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := local.FirmwareSet().One(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !queries.Equal(check.ID, foreign.ID) {
+		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
+	}
+
+	slice := ServerSlice{&local}
+	if err = local.L.LoadFirmwareSet(ctx, tx, false, (*[]*Server)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.FirmwareSet == nil {
+		t.Error("struct should have been eager loaded")
+	}
+
+	local.R.FirmwareSet = nil
+	if err = local.L.LoadFirmwareSet(ctx, tx, true, &local, nil); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.FirmwareSet == nil {
+		t.Error("struct should have been eager loaded")
+	}
+}
+
+func testServerToOneSetOpComponentFirmwareSetUsingFirmwareSet(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Server
+	var b, c ComponentFirmwareSet
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, serverDBTypes, false, strmangle.SetComplement(serverPrimaryKeyColumns, serverColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &b, componentFirmwareSetDBTypes, false, strmangle.SetComplement(componentFirmwareSetPrimaryKeyColumns, componentFirmwareSetColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, componentFirmwareSetDBTypes, false, strmangle.SetComplement(componentFirmwareSetPrimaryKeyColumns, componentFirmwareSetColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	for i, x := range []*ComponentFirmwareSet{&b, &c} {
+		err = a.SetFirmwareSet(ctx, tx, i != 0, x)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if a.R.FirmwareSet != x {
+			t.Error("relationship struct not set to correct value")
+		}
+
+		if x.R.FirmwareSetServers[0] != &a {
+			t.Error("failed to append to foreign relationship struct")
+		}
+		if !queries.Equal(a.FirmwareSetID, x.ID) {
+			t.Error("foreign key was wrong value", a.FirmwareSetID)
+		}
+
+		zero := reflect.Zero(reflect.TypeOf(a.FirmwareSetID))
+		reflect.Indirect(reflect.ValueOf(&a.FirmwareSetID)).Set(zero)
+
+		if err = a.Reload(ctx, tx); err != nil {
+			t.Fatal("failed to reload", err)
+		}
+
+		if !queries.Equal(a.FirmwareSetID, x.ID) {
+			t.Error("foreign key was wrong value", a.FirmwareSetID, x.ID)
+		}
+	}
+}
+
+func testServerToOneRemoveOpComponentFirmwareSetUsingFirmwareSet(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Server
+	var b ComponentFirmwareSet
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, serverDBTypes, false, strmangle.SetComplement(serverPrimaryKeyColumns, serverColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &b, componentFirmwareSetDBTypes, false, strmangle.SetComplement(componentFirmwareSetPrimaryKeyColumns, componentFirmwareSetColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.SetFirmwareSet(ctx, tx, true, &b); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.RemoveFirmwareSet(ctx, tx, &b); err != nil {
+		t.Error("failed to remove relationship")
+	}
+
+	count, err := a.FirmwareSet().Count(ctx, tx)
+	if err != nil {
+		t.Error(err)
+	}
+	if count != 0 {
+		t.Error("want no relationships remaining")
+	}
+
+	if a.R.FirmwareSet != nil {
+		t.Error("R struct entry should be nil")
+	}
+
+	if !queries.IsValuerNil(a.FirmwareSetID) {
+		t.Error("foreign key value should be nil")
+	}
+
+	if len(b.R.FirmwareSetServers) != 0 {
+		t.Error("failed to remove a from b's relationships")
+	}
+}
+
 func testServersReload(t *testing.T) {
 	t.Parallel()
 
@@ -1679,7 +1839,7 @@ func testServersSelect(t *testing.T) {
 }
 
 var (
-	serverDBTypes = map[string]string{`ID`: `uuid`, `Name`: `string`, `FacilityCode`: `string`, `CreatedAt`: `timestamptz`, `UpdatedAt`: `timestamptz`, `DeletedAt`: `timestamptz`}
+	serverDBTypes = map[string]string{`ID`: `uuid`, `Name`: `string`, `FacilityCode`: `string`, `CreatedAt`: `timestamptz`, `UpdatedAt`: `timestamptz`, `DeletedAt`: `timestamptz`, `FirmwareSetID`: `uuid`}
 	_             = bytes.MinRead
 )
 

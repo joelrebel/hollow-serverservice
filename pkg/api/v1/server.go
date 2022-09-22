@@ -15,6 +15,7 @@ type Server struct {
 	UUID                uuid.UUID             `json:"uuid"`
 	Name                string                `json:"name"`
 	FacilityCode        string                `json:"facility"`
+	FirmwareSetUUID     uuid.UUID             `json:"firmware_set_uuid"`
 	Attributes          []Attributes          `json:"attributes"`
 	Components          []ServerComponent     `json:"components"`
 	VersionedAttributes []VersionedAttributes `json:"versioned_attributes"`
@@ -51,6 +52,14 @@ func (s *Server) fromDBModel(dbS *models.Server) error {
 	s.UUID, err = uuid.Parse(dbS.ID)
 	if err != nil {
 		return err
+	}
+
+	firmwareIDStr := null.String(dbS.FirmwareSetID).String
+	if firmwareIDStr != "" {
+		s.FirmwareSetUUID, err = uuid.Parse(firmwareIDStr)
+		if err != nil {
+			return err
+		}
 	}
 
 	s.Name = dbS.Name.String
@@ -90,13 +99,27 @@ func (s *Server) fromDBModel(dbS *models.Server) error {
 
 func (s *Server) toDBModel() (*models.Server, error) {
 	dbS := &models.Server{
-		Name:         null.StringFrom(s.Name),
-		FacilityCode: null.StringFrom(s.FacilityCode),
+		Name:          null.StringFrom(s.Name),
+		FacilityCode:  null.StringFrom(s.FacilityCode),
+		FirmwareSetID: null.StringFrom(s.FirmwareSetUUID.String()),
 	}
 
 	if s.UUID.String() != uuid.Nil.String() {
 		dbS.ID = s.UUID.String()
 	}
 
+	dbS.FirmwareSetID = nullUUID(s.FirmwareSetUUID)
+
 	return dbS, nil
+}
+
+// nullUUID returns a null.String type from a uuid.UUID.
+//
+// in the case where the uuid is nil, a new null.String{} object is returned
+func nullUUID(id uuid.UUID) null.String {
+	if id.String() == uuid.Nil.String() {
+		return null.String{}
+	}
+
+	return null.StringFrom(id.String())
 }

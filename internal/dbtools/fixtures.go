@@ -62,7 +62,8 @@ var (
 	FixtureAllServers     models.ServerSlice
 
 	// ComponentFirmwareVersion fixtures
-	FixtureDellR640         *models.ComponentFirmwareVersion
+	FixtureDellR640BMC      *models.ComponentFirmwareVersion
+	FixtureDellR640BIOS     *models.ComponentFirmwareVersion
 	FixtureDellR6515        *models.ComponentFirmwareVersion
 	FixtureSuperMicro       *models.ComponentFirmwareVersion
 	FixtureServerComponents models.ServerComponentSlice
@@ -335,7 +336,7 @@ func setupChuckles(ctx context.Context, db *sqlx.DB) error {
 }
 
 func setupFirmwareDellR640(ctx context.Context, db *sqlx.DB) error {
-	FixtureDellR640 = &models.ComponentFirmwareVersion{
+	FixtureDellR640BMC = &models.ComponentFirmwareVersion{
 		Vendor:        "Dell",
 		Model:         "R640",
 		Filename:      "iDRAC-with-Lifecycle-Controller_Firmware_P8HC9_WN64_5.10.00.00_A00.EXE",
@@ -346,7 +347,22 @@ func setupFirmwareDellR640(ctx context.Context, db *sqlx.DB) error {
 		RepositoryURL: "https://example-firmware-bucket.s3.amazonaws.com/firmware/dell/r640/bmc/iDRAC-with-Lifecycle-Controller_Firmware_P8HC9_WN64_5.10.00.00_A00.EXE",
 	}
 
-	if err := FixtureDellR640.Insert(ctx, db, boil.Infer()); err != nil {
+	FixtureDellR640BIOS = &models.ComponentFirmwareVersion{
+		Vendor:        "Dell",
+		Model:         "R640",
+		Filename:      "bios.exe",
+		Version:       "2.4.4",
+		Component:     "bios",
+		Checksum:      "78ad2fe5bca0745151d678ddeb26679464ccb13ca3f1a3d289b77e211344402f",
+		UpstreamURL:   "https://vendor.com/firmwares/bios-2.4.4.EXE",
+		RepositoryURL: "https://example-firmware-bucket.s3.amazonaws.com/firmware/dell/r640/bios/bios-2.4.4.EXE",
+	}
+
+	if err := FixtureDellR640BMC.Insert(ctx, db, boil.Infer()); err != nil {
+		return err
+	}
+
+	if err := FixtureDellR640BIOS.Insert(ctx, db, boil.Infer()); err != nil {
 		return err
 	}
 

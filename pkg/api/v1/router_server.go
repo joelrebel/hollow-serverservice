@@ -136,6 +136,7 @@ func (r *Router) serverUpdate(c *gin.Context) {
 
 	srv.Name = null.StringFrom(newValues.Name)
 	srv.FacilityCode = null.StringFrom(newValues.FacilityCode)
+	srv.FirmwareSetID = nullUUID(newValues.FirmwareSetUUID)
 
 	cols := boil.Infer()
 
